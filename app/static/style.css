@@ -1,13 +1,33 @@
 html, body, #map { height: 100%; margin: 0; }
 .leaflet-tooltip img { max-width: 200px; }
-#upload-link {
+
+#controls {
   position: absolute;
   z-index: 1000;
   top: 10px;
   left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#controls a,
+#controls button {
   background: white;
   padding: 4px 8px;
   border-radius: 4px;
   text-decoration: none;
   color: #000;
+  border: none;
+  cursor: pointer;
+}
+
+#message {
+  position: absolute;
+  z-index: 1000;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
 }

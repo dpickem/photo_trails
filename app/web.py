@@ -27,7 +27,8 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        ingested = request.args.get("ingested", type=int)
+        return render_template("index.html", ingested=ingested)
 
     @app.route("/upload", methods=["GET", "POST"])
     def upload():
@@ -47,8 +48,8 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
 
     @app.route("/ingest-directory", methods=["POST"])
     def bulk_ingest():
-        ingest_directory(data_dir=photo_dir)
-        return redirect(url_for("index"))
+        photos = ingest_directory(data_dir=photo_dir)
+        return redirect(url_for("index", ingested=len(photos)))
 
     @app.route("/images/<path:filename>")
     def image_file(filename: str):

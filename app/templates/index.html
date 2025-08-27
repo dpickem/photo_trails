@@ -7,10 +7,18 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
 </head>
 <body>
-  <a id="upload-link" href="{{ url_for('upload') }}">Upload Photo(s)</a>
-  <form id="ingest-form" action="{{ url_for('bulk_ingest') }}" method="post" style="display:inline;">
-    <button type="submit">Ingest Data Directory</button>
-  </form>
+  <div id="controls">
+    <a href="{{ url_for('upload') }}">Upload Photo(s)</a>
+    <form id="ingest-form" action="{{ url_for('bulk_ingest') }}" method="post">
+      <button
+        type="submit"
+        title="Ingests all images already placed in the server's photos directory. Copy photos there first; no directory selection is available."
+      >Ingest Data Directory</button>
+    </form>
+  </div>
+  {% if ingested %}
+  <div id="message">{{ ingested }} photo(s) ingested.</div>
+  {% endif %}
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="{{ url_for('static', filename='map.js') }}"></script>
