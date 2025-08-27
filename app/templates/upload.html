@@ -11,8 +11,14 @@
     <p>{{ message }}</p>
   {% endif %}
   <form action="" method="post" enctype="multipart/form-data">
-    <input type="file" name="photos" accept="image/*" multiple webkitdirectory>
-    <button type="submit">Upload</button>
+    <label>Select photo(s):</label>
+    <input type="file" name="photos" accept="image/*" multiple>
+    <button type="submit">Upload Files</button>
+  </form>
+  <form action="" method="post" enctype="multipart/form-data">
+    <label>Select directory:</label>
+    <input type="file" name="photos" accept="image/*" webkitdirectory directory multiple>
+    <button type="submit">Upload Directory</button>
   </form>
   <p><a href="{{ url_for('index') }}">Back to map</a></p>
 </body>

@@ -17,18 +17,19 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from .database import Photo, get_session, init_db
-from .ingest import PHOTO_DATA_DIR, ingest_directory, ingest_photo
+from .ingest import PHOTO_DATA_DIR, ingest_photo, ingest_directory
 
 
 def create_app(db_path: str | Path = "photos.db") -> Flask:
     app = Flask(__name__)
     init_db(db_path)
     photo_dir = PHOTO_DATA_DIR
+    ingest_directory(data_dir=photo_dir)
 
     @app.route("/")
     def index():
-        ingested = request.args.get("ingested", type=int)
-        return render_template("index.html", ingested=ingested)
+        message = request.args.get("message")
+        return render_template("index.html", message=message)
 
     @app.route("/upload", methods=["GET", "POST"])
     def upload():
@@ -36,20 +37,39 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
         if request.method == "POST":
             files = [f for f in request.files.getlist("photos") if f and f.filename]
             if files:
+                ingested = 0
                 with tempfile.TemporaryDirectory() as tmpdir:
                     for file in files:
                         tmp_path = Path(tmpdir) / secure_filename(file.filename)
                         file.save(tmp_path)
-                        ingest_photo(tmp_path, data_dir=photo_dir)
-                return redirect(url_for("index"))
-            message = "No file selected."
-            
+                        try:
+                            photo = ingest_photo(tmp_path, data_dir=photo_dir)
+                            if photo:
+                                ingested += 1
+                            else:
+                                message = f"Failed to ingest {file.filename}"
+                                break
+                        except Exception as exc:  # pragma: no cover - defensive
+                            message = f"Error ingesting {file.filename}: {exc}"
+                            break
+                if ingested and not message:
+                    return redirect(url_for("index", message=f"{ingested} photo(s) ingested."))
+            else:
+                message = "No file selected."
+
         return render_template("upload.html", message=message)
 
-    @app.route("/ingest-directory", methods=["POST"])
-    def bulk_ingest():
-        photos = ingest_directory(data_dir=photo_dir)
-        return redirect(url_for("index", ingested=len(photos)))
+    @app.route("/clear-db", methods=["POST"])
+    def clear_db():
+        session = get_session()
+        photos = session.query(Photo).all()
+        for photo in photos:
+            path = Path(photo.file_path)
+            if path.exists():
+                path.unlink()
+            session.delete(photo)
+        session.commit()
+        return redirect(url_for("index", message="Database cleared."))
 
     @app.route("/images/<path:filename>")
     def image_file(filename: str):
