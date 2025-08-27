@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import datetime as dt
+import shutil
+import warnings
 from pathlib import Path
 
 from PIL import Image, ExifTags
 
 from .database import Photo, get_session
-from .llm import geo_locate_photo, describe_photo, identify_people
+from .llm import describe_photo, identify_people
 
 
 def _get_exif(image_path: Path) -> dict:
@@ -40,7 +42,8 @@ def _gps_from_exif(exif: dict) -> tuple[float, float] | None:
 
 
 def ingest_photo(path: str | Path, *, describe: bool = False,
-                 identify: bool = False) -> Photo:
+                 identify: bool = False,
+                 data_dir: str | Path = "photos") -> Photo | None:
     """Ingest a single photo into the database.
 
     Parameters
@@ -54,6 +57,10 @@ def ingest_photo(path: str | Path, *, describe: bool = False,
     """
     image_path = Path(path)
     exif = _get_exif(image_path)
+    if not exif:
+        warnings.warn(f"No EXIF data found for {image_path}, skipping ingestion")
+        return None
+
     gps = _gps_from_exif(exif)
     taken_at = None
     if (dt_str := exif.get("DateTime")):
@@ -62,18 +69,20 @@ def ingest_photo(path: str | Path, *, describe: bool = False,
         except ValueError:
             pass
 
-    if gps is None:
-        gps = geo_locate_photo(image_path)
-
     description = describe_photo(image_path) if describe else None
 
     people = []
     if identify:
         people = identify_people(image_path)
 
+    dest_dir = Path(data_dir)
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / image_path.name
+    shutil.copy2(image_path, dest_path)
+
     session = get_session()
     photo = Photo(
-        file_path=str(image_path),
+        file_path=str(dest_path),
         latitude=gps[0] if gps else None,
         longitude=gps[1] if gps else None,
         taken_at=taken_at,

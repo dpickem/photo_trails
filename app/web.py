@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import tempfile
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, redirect, render_template, request, url_for
+from werkzeug.utils import secure_filename
 
 from .database import Photo, get_session, init_db
+from .ingest import ingest_photo
 
 
 def create_app(db_path: str | Path = "photos.db") -> Flask:
@@ -16,6 +19,24 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
     @app.route("/")
     def index():
         return render_template("index.html")
+
+    @app.route("/upload", methods=["GET", "POST"])
+    def upload():
+        message = None
+        if request.method == "POST":
+            file = request.files.get("photo")
+            if file and file.filename:
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    tmp_path = Path(tmpdir) / secure_filename(file.filename)
+                    file.save(tmp_path)
+                    photo = ingest_photo(tmp_path)
+                if photo is None:
+                    message = "No EXIF data found; photo not ingested."
+                else:
+                    return redirect(url_for("index"))
+            else:
+                message = "No file selected."
+        return render_template("upload.html", message=message)
 
     @app.route("/photos")
     def photos():

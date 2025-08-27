@@ -23,4 +23,9 @@ docker run -p 8000:8000 -v $(pwd)/photos:/photos photo_trails
 ```
 
 Images placed in the `photos/` directory can then be ingested using the
-`ingest_photo` helper in `app/ingest.py`.
+`ingest_photo` helper in `app/ingest.py`. Photos lacking EXIF metadata are
+skipped with a warning, and all ingested files are copied into the `photos/`
+directory with their metadata stored in the photo database.
+Photos can also be uploaded through the web interface via the *Upload Photo*
+link, which uses the same ingestion process and skips files without EXIF
+metadata.
