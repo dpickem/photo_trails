@@ -1,0 +1,1 @@
+"""Photo Trails application package."""
