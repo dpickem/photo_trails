@@ -23,6 +23,7 @@ from .ingest import ingest_photo
 def create_app(db_path: str | Path = "photos.db") -> Flask:
     app = Flask(__name__)
     init_db(db_path)
+    photo_dir = Path(app.root_path).parent / "photos"
 
     @app.route("/")
     def index():
@@ -37,7 +38,7 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmp_path = Path(tmpdir) / secure_filename(file.filename)
                     file.save(tmp_path)
-                    photo = ingest_photo(tmp_path)
+                    photo = ingest_photo(tmp_path, data_dir=photo_dir)
                 if photo is None:
                     message = "No EXIF data found; photo not ingested."
                 else:
@@ -49,7 +50,7 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
     @app.route("/images/<path:filename>")
     def image_file(filename: str):
         """Serve ingested photo files."""
-        return send_from_directory("photos", filename)
+        return send_from_directory(photo_dir, filename)
 
     @app.route("/photos")
     def photos():
