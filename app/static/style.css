@@ -31,3 +31,12 @@ html, body, #map { height: 100%; margin: 0; }
   padding: 4px 8px;
   border-radius: 4px;
 }
+
+#debug-console {
+  background: #111;
+  color: #0f0;
+  padding: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}

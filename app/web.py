@@ -34,30 +34,30 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
     @app.route("/upload", methods=["GET", "POST"])
     def upload():
         message = None
+        log: list[str] = []
         if request.method == "POST":
             files = [f for f in request.files.getlist("photos") if f and f.filename]
             if files:
-                ingested = 0
+                success = 0
                 with tempfile.TemporaryDirectory() as tmpdir:
                     for file in files:
                         tmp_path = Path(tmpdir) / secure_filename(file.filename)
                         file.save(tmp_path)
                         try:
                             photo = ingest_photo(tmp_path, data_dir=photo_dir)
-                            if photo:
-                                ingested += 1
+                        except Exception as exc:  # pragma: no cover - log error
+                            log.append(f"{file.filename}: {exc}")
+                        else:
+                            success += 1
+                            if photo.latitude is None or photo.longitude is None:
+                                log.append(f"{file.filename}: ingested (no GPS data)")
                             else:
-                                message = f"Failed to ingest {file.filename}"
-                                break
-                        except Exception as exc:  # pragma: no cover - defensive
-                            message = f"Error ingesting {file.filename}: {exc}"
-                            break
-                if ingested and not message:
-                    return redirect(url_for("index", message=f"{ingested} photo(s) ingested."))
+                                log.append(f"{file.filename}: ingested")
+                message = f"{success} of {len(files)} photo(s) ingested."
             else:
                 message = "No file selected."
 
-        return render_template("upload.html", message=message)
+        return render_template("upload.html", message=message, log=log)
 
     @app.route("/clear-db", methods=["POST"])
     def clear_db():
