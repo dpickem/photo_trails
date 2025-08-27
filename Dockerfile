@@ -9,6 +9,6 @@ COPY app ./app
 COPY README.md .
 
 ENV FLASK_APP=app.web:create_app
-EXPOSE 5000
+EXPOSE 8000
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=8000"]
