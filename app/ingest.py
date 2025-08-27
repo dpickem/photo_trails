@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime as dt
 import shutil
-import warnings
 from pathlib import Path
 
 from PIL import Image, ExifTags
@@ -72,8 +71,7 @@ def ingest_photo(
     image_path = Path(path)
     exif = _get_exif(image_path)
     if not exif:
-        warnings.warn(f"No EXIF data found for {image_path}, skipping ingestion")
-        return None
+        raise ValueError(f"No EXIF data found for {image_path}")
 
     gps = _gps_from_exif(exif)
     taken_at = None
@@ -114,6 +112,7 @@ def ingest_photo(
     )
     session.add(photo)
     session.commit()
+    session.refresh(photo)
     return photo
 
 
@@ -134,9 +133,13 @@ def ingest_directory(
     ingested: list[Photo] = []
     for path in data_dir.iterdir():
         if path.is_file() and path.name not in existing:
-            photo = ingest_photo(
-                path, describe=describe, identify=identify, data_dir=data_dir
-            )
-            if photo:
+            try:
+                photo = ingest_photo(
+                    path, describe=describe, identify=identify, data_dir=data_dir
+                )
+            except Exception:
+                # Skip files that fail to ingest
+                continue
+            else:
                 ingested.append(photo)
     return ingested
