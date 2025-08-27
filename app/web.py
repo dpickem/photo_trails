@@ -5,7 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 import tempfile
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from werkzeug.utils import secure_filename
 
 from .database import Photo, get_session, init_db
@@ -38,6 +46,11 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
                 message = "No file selected."
         return render_template("upload.html", message=message)
 
+    @app.route("/images/<path:filename>")
+    def image_file(filename: str):
+        """Serve ingested photo files."""
+        return send_from_directory("photos", filename)
+
     @app.route("/photos")
     def photos():
         session = get_session()
@@ -46,6 +59,7 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
             {
                 "id": p.id,
                 "file_path": p.file_path,
+                "url": url_for("image_file", filename=Path(p.file_path).name),
                 "latitude": p.latitude,
                 "longitude": p.longitude,
                 "description": p.description,
