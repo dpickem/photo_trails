@@ -1,2 +1,13 @@
 html, body, #map { height: 100%; margin: 0; }
 .leaflet-tooltip img { max-width: 200px; }
+#upload-link {
+  position: absolute;
+  z-index: 1000;
+  top: 10px;
+  left: 10px;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #000;
+}
