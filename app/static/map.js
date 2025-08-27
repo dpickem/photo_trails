@@ -6,10 +6,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 fetch('/photos')
   .then(resp => resp.json())
   .then(data => {
+    const markers = L.markerClusterGroup();
     data.forEach(p => {
       if (p.latitude !== null && p.longitude !== null) {
-        const marker = L.circleMarker([p.latitude, p.longitude], { radius: 5 }).addTo(map);
+        const marker = L.marker([p.latitude, p.longitude]);
         marker.bindTooltip(`<img src="${p.url}" alt="photo" />`);
+        markers.addLayer(marker);
       }
     });
+    map.addLayer(markers);
   });
