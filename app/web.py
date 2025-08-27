@@ -17,12 +17,13 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from .database import Photo, get_session, init_db
-from .ingest import ingest_photo
+from .ingest import PHOTO_DATA_DIR, ingest_directory, ingest_photo
 
 
 def create_app(db_path: str | Path = "photos.db") -> Flask:
     app = Flask(__name__)
     init_db(db_path)
+    photo_dir = PHOTO_DATA_DIR
 
     @app.route("/")
     def index():
@@ -32,24 +33,26 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
     def upload():
         message = None
         if request.method == "POST":
-            file = request.files.get("photo")
-            if file and file.filename:
+            files = [f for f in request.files.getlist("photos") if f and f.filename]
+            if files:
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    tmp_path = Path(tmpdir) / secure_filename(file.filename)
-                    file.save(tmp_path)
-                    photo = ingest_photo(tmp_path)
-                if photo is None:
-                    message = "No EXIF data found; photo not ingested."
-                else:
-                    return redirect(url_for("index"))
-            else:
-                message = "No file selected."
+                    for file in files:
+                        tmp_path = Path(tmpdir) / secure_filename(file.filename)
+                        file.save(tmp_path)
+                        ingest_photo(tmp_path, data_dir=photo_dir)
+                return redirect(url_for("index"))
+            message = "No file selected."
         return render_template("upload.html", message=message)
+
+    @app.route("/ingest-directory", methods=["POST"])
+    def bulk_ingest():
+        ingest_directory(data_dir=photo_dir)
+        return redirect(url_for("index"))
 
     @app.route("/images/<path:filename>")
     def image_file(filename: str):
         """Serve ingested photo files."""
-        return send_from_directory("photos", filename)
+        return send_from_directory(photo_dir, filename)
 
     @app.route("/photos")
     def photos():

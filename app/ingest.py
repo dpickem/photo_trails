@@ -12,6 +12,9 @@ from PIL import Image, ExifTags
 from .database import Photo, get_session
 from .llm import describe_photo, identify_people
 
+# Shared directory where photo data is stored
+PHOTO_DATA_DIR = Path(__file__).resolve().parent.parent / "photos"
+
 
 def _get_exif(image_path: Path) -> dict:
     img = Image.open(image_path)
@@ -48,9 +51,13 @@ def _gps_from_exif(exif: dict) -> tuple[float, float] | None:
     return lat, lon
 
 
-def ingest_photo(path: str | Path, *, describe: bool = False,
-                 identify: bool = False,
-                 data_dir: str | Path = "photos") -> Photo | None:
+def ingest_photo(
+    path: str | Path,
+    *,
+    describe: bool = False,
+    identify: bool = False,
+    data_dir: str | Path = PHOTO_DATA_DIR,
+) -> Photo | None:
     """Ingest a single photo into the database.
 
     Parameters
@@ -84,8 +91,17 @@ def ingest_photo(path: str | Path, *, describe: bool = False,
 
     dest_dir = Path(data_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
-    dest_path = dest_dir / image_path.name
-    shutil.copy2(image_path, dest_path)
+
+    # If the source is already in the destination directory, avoid copying.
+    if image_path.parent == dest_dir:
+        dest_path = image_path
+    else:
+        dest_path = dest_dir / image_path.name
+        counter = 1
+        while dest_path.exists():
+            dest_path = dest_dir / f"{image_path.stem}_{counter}{image_path.suffix}"
+            counter += 1
+        shutil.copy2(image_path, dest_path)
 
     session = get_session()
     photo = Photo(
@@ -99,3 +115,28 @@ def ingest_photo(path: str | Path, *, describe: bool = False,
     session.add(photo)
     session.commit()
     return photo
+
+
+def ingest_directory(
+    data_dir: str | Path = PHOTO_DATA_DIR,
+    *,
+    describe: bool = False,
+    identify: bool = False,
+) -> list[Photo]:
+    """Ingest all photos in ``data_dir`` not already present in the DB."""
+
+    data_dir = Path(data_dir)
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    session = get_session()
+    existing = {Path(p.file_path).name for p in session.query(Photo.file_path).all()}
+
+    ingested: list[Photo] = []
+    for path in data_dir.iterdir():
+        if path.is_file() and path.name not in existing:
+            photo = ingest_photo(
+                path, describe=describe, identify=identify, data_dir=data_dir
+            )
+            if photo:
+                ingested.append(photo)
+    return ingested
