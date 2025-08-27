@@ -9,15 +9,12 @@
 <body>
   <div id="controls">
     <a href="{{ url_for('upload') }}">Upload Photo(s)</a>
-    <form id="ingest-form" action="{{ url_for('bulk_ingest') }}" method="post">
-      <button
-        type="submit"
-        title="Ingests all images already placed in the server's photos directory. Copy photos there first; no directory selection is available."
-      >Ingest Data Directory</button>
+    <form id="clear-form" action="{{ url_for('clear_db') }}" method="post">
+      <button type="submit">Clear Database</button>
     </form>
   </div>
-  {% if ingested %}
-  <div id="message">{{ ingested }} photo(s) ingested.</div>
+  {% if message %}
+  <div id="message">{{ message }}</div>
   {% endif %}
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
