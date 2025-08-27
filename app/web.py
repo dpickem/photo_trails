@@ -42,6 +42,7 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
                         ingest_photo(tmp_path, data_dir=photo_dir)
                 return redirect(url_for("index"))
             message = "No file selected."
+            
         return render_template("upload.html", message=message)
 
     @app.route("/ingest-directory", methods=["POST"])
