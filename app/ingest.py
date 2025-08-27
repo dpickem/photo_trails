@@ -29,8 +29,15 @@ def _gps_from_exif(exif: dict) -> tuple[float, float] | None:
         return None
 
     def _convert(value):
-        d, m, s = value
-        return float(d[0]) / d[1] + float(m[0]) / m[1] / 60 + float(s[0]) / s[1] / 3600
+        def _to_float(item):
+            """Return a float from either an IFDRational or (num, den) tuple."""
+            try:
+                return float(item)
+            except TypeError:
+                return float(item[0]) / item[1]
+
+        d, m, s = (_to_float(x) for x in value)
+        return d + m / 60 + s / 3600
 
     lat = _convert(gps_info[2])
     if gps_info[1] == 'S':
