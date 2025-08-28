@@ -9,25 +9,29 @@ html, body {
 }
 
 #sidebar {
-  width: 300px;
+  width: 320px;
   box-sizing: border-box;
-  padding: 10px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  gap: 16px;
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  font-family: system-ui, sans-serif;
   overflow-y: auto;
 }
 
-#sidebar a,
 #sidebar button {
-  background: white;
-  padding: 4px 8px;
+  background: #3b82f6;
+  color: #fff;
+  padding: 6px 12px;
   border-radius: 4px;
-  text-decoration: none;
-  color: #000;
   border: none;
   cursor: pointer;
+}
+
+#sidebar button:hover {
+  background: #2563eb;
 }
 
 #map {
@@ -49,25 +53,51 @@ html, body {
 }
 
 #debug-console {
-  background: #111;
-  color: #0f0;
+  background: #1f2937;
+  color: #d1d5db;
   padding: 8px;
   max-height: 200px;
   overflow-y: auto;
   white-space: pre-wrap;
+  border-radius: 4px;
 }
 
 #upload-panel {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px;
-  border-radius: 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .status-box {
-  background: rgba(255, 255, 255, 0.9);
+  background: #e5e7eb;
   padding: 4px 8px;
   border-radius: 4px;
+}
+
+#sidebar details {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+#sidebar details + details {
+  margin-top: 8px;
+}
+
+#sidebar summary {
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+#sidebar summary::-webkit-details-marker {
+  display: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
 }

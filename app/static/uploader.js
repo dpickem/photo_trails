@@ -49,42 +49,71 @@ function Uploader() {
     "div",
     { id: "upload-panel" },
     React.createElement(
-      "div",
-      null,
-      React.createElement("input", { ref: fileRef, type: "file", accept: "image/*", multiple: true }),
+      "details",
+      { open: true },
+      React.createElement("summary", null, "Upload Files"),
       React.createElement(
-        "button",
-        { onClick: () => upload(fileRef) },
-        "Upload Files"
+        "div",
+        { className: "field" },
+        React.createElement("input", { ref: fileRef, type: "file", accept: "image/*", multiple: true }),
+        React.createElement(
+          "button",
+          { onClick: () => upload(fileRef) },
+          "Upload"
+        )
       )
     ),
     React.createElement(
-      "div",
+      "details",
       null,
-      React.createElement("input", {
-        ref: dirRef,
-        type: "file",
-        accept: "image/*",
-        multiple: true,
-        webkitdirectory: "",
-        directory: "",
-      }),
+      React.createElement("summary", null, "Upload Directory"),
       React.createElement(
-        "button",
-        { onClick: () => upload(dirRef) },
-        "Upload Directory"
+        "div",
+        { className: "field" },
+        React.createElement("input", {
+          ref: dirRef,
+          type: "file",
+          accept: "image/*",
+          multiple: true,
+          webkitdirectory: "",
+          directory: "",
+        }),
+        React.createElement(
+          "button",
+          { onClick: () => upload(dirRef) },
+          "Upload"
+        )
       )
     ),
-    message
-      ? React.createElement("div", { className: "status-box" }, message)
-      : null,
-    log.length > 0
-      ? React.createElement("pre", { id: "debug-console" }, log.join("\n"))
-      : null,
     React.createElement(
-      "div",
-      { className: "status-box" },
-      `Database rows: ${count}`
+      "details",
+      { open: true },
+      React.createElement("summary", null, "Status"),
+      message
+        ? React.createElement("div", { className: "status-box" }, message)
+        : null,
+      log.length > 0
+        ? React.createElement("pre", { id: "debug-console" }, log.join("\n"))
+        : null,
+      React.createElement(
+        "div",
+        { className: "status-box" },
+        `Database rows: ${count}`
+      )
+    ),
+    React.createElement(
+      "details",
+      null,
+      React.createElement("summary", null, "Database"),
+      React.createElement(
+        "form",
+        { action: "/clear-db", method: "post" },
+        React.createElement(
+          "button",
+          { type: "submit" },
+          "Clear Database"
+        )
+      )
     )
   );
 }
