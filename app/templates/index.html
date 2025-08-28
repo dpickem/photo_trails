@@ -7,10 +7,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 </head>
 <body>
   <div id="controls">
-    <a href="{{ url_for('upload') }}">Upload Photo(s)</a>
+    <div id="uploader-root"></div>
     <form id="clear-form" action="{{ url_for('clear_db') }}" method="post">
       <button type="submit">Clear Database</button>
     </form>
@@ -22,5 +24,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="{{ url_for('static', filename='map.js') }}"></script>
+  <script src="{{ url_for('static', filename='uploader.js') }}"></script>
 </body>
 </html>

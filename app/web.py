@@ -31,33 +31,32 @@ def create_app(db_path: str | Path = "photos.db") -> Flask:
         message = request.args.get("message")
         return render_template("index.html", message=message)
 
-    @app.route("/upload", methods=["GET", "POST"])
+    @app.route("/upload", methods=["POST"])
     def upload():
         message = None
         log: list[str] = []
-        if request.method == "POST":
-            files = [f for f in request.files.getlist("photos") if f and f.filename]
-            if files:
-                success = 0
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    for file in files:
-                        tmp_path = Path(tmpdir) / secure_filename(file.filename)
-                        file.save(tmp_path)
-                        try:
-                            photo = ingest_photo(tmp_path, data_dir=photo_dir)
-                        except Exception as exc:  # pragma: no cover - log error
-                            log.append(f"{file.filename}: {exc}")
+        files = [f for f in request.files.getlist("photos") if f and f.filename]
+        if files:
+            success = 0
+            with tempfile.TemporaryDirectory() as tmpdir:
+                for file in files:
+                    tmp_path = Path(tmpdir) / secure_filename(file.filename)
+                    file.save(tmp_path)
+                    try:
+                        photo = ingest_photo(tmp_path, data_dir=photo_dir)
+                    except Exception as exc:  # pragma: no cover - log error
+                        log.append(f"{file.filename}: {exc}")
+                    else:
+                        success += 1
+                        if photo.latitude is None or photo.longitude is None:
+                            log.append(f"{file.filename}: ingested (no GPS data)")
                         else:
-                            success += 1
-                            if photo.latitude is None or photo.longitude is None:
-                                log.append(f"{file.filename}: ingested (no GPS data)")
-                            else:
-                                log.append(f"{file.filename}: ingested")
-                message = f"{success} of {len(files)} photo(s) ingested."
-            else:
-                message = "No file selected."
+                            log.append(f"{file.filename}: ingested")
+            message = f"{success} of {len(files)} photo(s) ingested."
+        else:
+            message = "No file selected."
 
-        return render_template("upload.html", message=message, log=log)
+        return jsonify({"message": message, "log": log})
 
     @app.route("/clear-db", methods=["POST"])
     def clear_db():

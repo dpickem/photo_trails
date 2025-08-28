@@ -37,11 +37,11 @@ def test_upload_and_clear_endpoints(tmp_path, monkeypatch):
 
     client = app.test_client()
     with img1.open("rb") as f1, img2.open("rb") as f2:
-        data = {"photos": [(f1, "one.jpg"), (f2, "two.jpg")]}
+        data = {"photos": [(f1, "one.jpg"), (f2, "two.jpg")]} 
         resp = client.post("/upload", data=data, content_type="multipart/form-data")
     assert resp.status_code == 200
-    body = resp.data.decode()
-    assert "one.jpg" in body and "two.jpg" in body
+    body = resp.get_json()
+    assert "one.jpg" in "\n".join(body["log"]) and "two.jpg" in "\n".join(body["log"])
 
     assert session.query(Photo).count() == 3
 

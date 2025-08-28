@@ -40,3 +40,18 @@ html, body, #map { height: 100%; margin: 0; }
   overflow-y: auto;
   white-space: pre-wrap;
 }
+
+#upload-panel {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-box {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
