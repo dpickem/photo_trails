@@ -9,25 +9,31 @@ html, body {
 }
 
 #sidebar {
-  width: 300px;
+  width: 380px;
   box-sizing: border-box;
-  padding: 10px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  gap: 12px;
+  background: #0b0c10;
+  color: #e8ebf1;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   overflow-y: auto;
 }
 
 #sidebar a,
 #sidebar button {
-  background: white;
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: #1a1d24;
+  padding: 8px 10px;
+  border-radius: 10px;
   text-decoration: none;
-  color: #000;
-  border: none;
+  color: #e8ebf1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
+}
+
+#sidebar button:hover {
+  background: #212531;
 }
 
 #map {
@@ -39,9 +45,10 @@ html, body {
   z-index: 1000;
   top: 10px;
   right: 10px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.7);
   padding: 4px 8px;
   border-radius: 4px;
+  color: #fff;
 }
 
 .leaflet-tooltip img {
@@ -58,16 +65,116 @@ html, body {
 }
 
 #upload-panel {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px;
-  border-radius: 4px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .status-box {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: #11141b;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table-container {
+  overflow: auto;
+  max-height: 220px;
+  border-radius: 8px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  background: #0f121a;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.muted {
+  color: #98a2b3;
+  font-size: 12px;
+}
+
+.upload-card {
+  background: #11141b;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-row input[type="file"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.primary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.primary:hover {
+  background: #2f6fd6;
+}
+
+.progress {
+  height: 8px;
+  background: #1a1d24;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  transition: width 120ms ease-out;
+}
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1a1d24;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
 }

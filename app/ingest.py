@@ -5,14 +5,17 @@ from __future__ import annotations
 import datetime as dt
 import shutil
 from pathlib import Path
+import os
+import hashlib
 
 from PIL import Image, ExifTags
 
 from .database import Photo, get_session
 from .llm import describe_photo, identify_people
 
-# Shared directory where photo data is stored
-PHOTO_DATA_DIR = Path(__file__).resolve().parent.parent / "photos"
+# Shared directory where photo data is stored. Allow override via env var.
+_default_photos_dir = Path(__file__).resolve().parent.parent / "photos"
+PHOTO_DATA_DIR = Path(os.environ.get("PHOTO_DATA_DIR", str(_default_photos_dir)))
 
 
 def _get_exif(image_path: Path) -> dict:
@@ -42,10 +45,10 @@ def _gps_from_exif(exif: dict) -> tuple[float, float] | None:
         return d + m / 60 + s / 3600
 
     lat = _convert(gps_info[2])
-    if gps_info[1] == 'S':
+    if gps_info[1] == "S":
         lat = -lat
     lon = _convert(gps_info[4])
-    if gps_info[3] == 'W':
+    if gps_info[3] == "W":
         lon = -lon
     return lat, lon
 
@@ -69,13 +72,37 @@ def ingest_photo(
         If ``True``, attempt to identify known people via the LLM.
     """
     image_path = Path(path)
-    exif = _get_exif(image_path)
-    if not exif:
-        raise ValueError(f"No EXIF data found for {image_path}")
+    # Compute a stable content hash to detect duplicates before copying
+    def _file_sha256(p: Path) -> str:
+        h = hashlib.sha256()
+        with p.open("rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    try:
+        content_hash = _file_sha256(image_path)
+    except Exception:
+        content_hash = None
+
+    # Before doing any copying, check if this content already exists in DB.
+    session = get_session()
+    if content_hash is not None:
+        existing = session.query(Photo).filter_by(file_hash=content_hash).first()
+        if existing:
+            # Duplicate content: skip copying a new file and return existing row.
+            return existing
+    # Load EXIF if present. Some images (or exported copies) may not include EXIF.
+    # We still ingest these files but leave GPS/timestamp fields empty.
+    exif = {}
+    try:
+        exif = _get_exif(image_path)
+    except Exception:
+        exif = {}
 
     gps = _gps_from_exif(exif)
     taken_at = None
-    if (dt_str := exif.get("DateTime")):
+    if dt_str := exif.get("DateTime"):
         try:
             taken_at = dt.datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S")
         except ValueError:
@@ -101,9 +128,9 @@ def ingest_photo(
             counter += 1
         shutil.copy2(image_path, dest_path)
 
-    session = get_session()
     photo = Photo(
         file_path=str(dest_path),
+        file_hash=content_hash,
         latitude=gps[0] if gps else None,
         longitude=gps[1] if gps else None,
         taken_at=taken_at,
@@ -114,32 +141,3 @@ def ingest_photo(
     session.commit()
     session.refresh(photo)
     return photo
-
-
-def ingest_directory(
-    data_dir: str | Path = PHOTO_DATA_DIR,
-    *,
-    describe: bool = False,
-    identify: bool = False,
-) -> list[Photo]:
-    """Ingest all photos in ``data_dir`` not already present in the DB."""
-
-    data_dir = Path(data_dir)
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    session = get_session()
-    existing = {Path(p.file_path).name for p in session.query(Photo.file_path).all()}
-
-    ingested: list[Photo] = []
-    for path in data_dir.iterdir():
-        if path.is_file() and path.name not in existing:
-            try:
-                photo = ingest_photo(
-                    path, describe=describe, identify=identify, data_dir=data_dir
-                )
-            except Exception:
-                # Skip files that fail to ingest
-                continue
-            else:
-                ingested.append(photo)
-    return ingested
