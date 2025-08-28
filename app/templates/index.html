@@ -11,16 +11,18 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 </head>
 <body>
-  <div id="controls">
-    <div id="uploader-root"></div>
-    <form id="clear-form" action="{{ url_for('clear_db') }}" method="post">
-      <button type="submit">Clear Database</button>
-    </form>
+  <div id="layout">
+    <div id="sidebar">
+      <div id="uploader-root"></div>
+      <form id="clear-form" action="{{ url_for('clear_db') }}" method="post">
+        <button type="submit">Clear Database</button>
+      </form>
+    </div>
+    <div id="map"></div>
   </div>
   {% if message %}
   <div id="message">{{ message }}</div>
   {% endif %}
-  <div id="map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="{{ url_for('static', filename='map.js') }}"></script>

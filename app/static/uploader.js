@@ -1,10 +1,25 @@
-const { useState, useRef } = React;
+const { useState, useRef, useEffect } = React;
 
 function Uploader() {
   const [message, setMessage] = useState(null);
   const [log, setLog] = useState([]);
+  const [count, setCount] = useState(0);
   const fileRef = useRef(null);
   const dirRef = useRef(null);
+
+  const fetchCount = async () => {
+    try {
+      const resp = await fetch("/photos");
+      const data = await resp.json();
+      setCount(data.length);
+    } catch (err) {
+      setCount(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCount();
+  }, []);
 
   const upload = async (inputRef) => {
     const files = inputRef.current.files;
@@ -27,6 +42,7 @@ function Uploader() {
       setLog([String(err)]);
     }
     inputRef.current.value = "";
+    fetchCount();
   };
 
   return React.createElement(
@@ -64,7 +80,12 @@ function Uploader() {
       : null,
     log.length > 0
       ? React.createElement("pre", { id: "debug-console" }, log.join("\n"))
-      : null
+      : null,
+    React.createElement(
+      "div",
+      { className: "status-box" },
+      `Database rows: ${count}`
+    )
   );
 }
 
